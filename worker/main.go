@@ -33,6 +33,7 @@ func main() {
 		HTTPClient: http.DefaultClient,
 	}
 	w.RegisterWorkflow(iplocate.GetAddressFromIP)
+	w.RegisterWorkflow(iplocate.GetAddressFromIPV2)
 	w.RegisterActivity(activities)
 
 	err = w.Run(worker.InterruptCh())

@@ -42,7 +42,7 @@ func main() {
 		// StartDelay: 10 * time.Second,
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, iplocate.GetAddressFromIP, "")
+	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, iplocate.GetAddressFromIPV2, "")
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}
