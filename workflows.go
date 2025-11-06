@@ -8,12 +8,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type data struct {
-	result   string
-	timezone string
-}
-
-func GetAddressFromIP(ctx workflow.Context, name string) (data, error) {
+func GetAddressFromIP(ctx workflow.Context, name string) (string, error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
@@ -30,7 +25,7 @@ func GetAddressFromIP(ctx workflow.Context, name string) (data, error) {
 	var ip string
 	err := workflow.ExecuteActivity(ctx, ipActivities.GetIP).Get(ctx, &ip)
 	if err != nil {
-		return data{}, fmt.Errorf("failed to get ip: %s", err)
+		return "", fmt.Errorf("failed to get ip: %s", err)
 	}
 	workflow.GetLogger(ctx).Info("IP fetched", "ip", ip)
 	// Sleep for 45 seconds to give us time to modify code while workflow is running
@@ -41,33 +36,8 @@ func GetAddressFromIP(ctx workflow.Context, name string) (data, error) {
 	var location string
 	err = workflow.ExecuteActivity(ctx, ipActivities.GetLocationInfo, ip).Get(ctx, &location)
 	if err != nil {
-		return data{}, fmt.Errorf("failed to get location: %s", err)
+		return "", fmt.Errorf("failed to get location: %s", err)
 	}
-	var timezone string
-	err = workflow.ExecuteActivity(ctx, ipActivities.GetTimeZone, ip).Get(ctx, &timezone)
-	if err != nil {
-		return data{}, fmt.Errorf("failed to get timezone: %s", err)
-	}
-	return data{result: location, timezone: timezone}, nil
-}
 
-func GetZoneFromIP(ctx workflow.Context, ip string) (data, error) {
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute,
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    time.Second,
-			MaximumInterval:    time.Minute,
-			BackoffCoefficient: 2,
-		},
-	}
-	var ipActivities *IPActivities
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	workflow.GetLogger(ctx).Info("breaking changes unversioned, let it dance!")
-	var location string
-	err := workflow.ExecuteActivity(ctx, ipActivities.GetTimeZone, ip).Get(ctx, &location)
-	if err != nil {
-		return data{}, fmt.Errorf("failed to get location: %s", err)
-	}
-	return data{timezone: location}, nil
+	return location, nil
 }
