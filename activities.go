@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 )
 
 type HTTPGetter interface {
@@ -15,6 +17,8 @@ type HTTPGetter interface {
 
 type IPActivities struct {
 	HTTPClient HTTPGetter
+	mu         sync.Mutex
+	cache      map[string]string
 }
 
 func (i *IPActivities) GetIP(ctx context.Context) (string, error) {
@@ -99,4 +103,29 @@ func (i *IPActivities) GetTimeZone(ctx context.Context, ip string) (string, erro
 	}
 
 	return data.Timezone, nil
+}
+
+func (i *IPActivities) RecordLookup(ctx context.Context, ip string) (string, error) {
+	recordId := fmt.Sprintf("%d-%s", time.Now().Unix(), ip)
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	if i.cache == nil {
+		i.cache = make(map[string]string)
+	}
+	i.cache[recordId] = ip
+	fmt.Printf("Recorded lookup: %s -> %s\n", recordId, ip)
+
+	return recordId, nil
+
+}
+
+func (i *IPActivities) CompensateLookup(ctx context.Context, recordId string) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	if _, ok := i.cache[recordId]; ok {
+		delete(i.cache, recordId)
+		fmt.Printf("Compensated lookup, removed record: %s\n", recordId)
+	}
+	return nil
 }

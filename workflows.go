@@ -62,9 +62,16 @@ func GetAddressFromIPV2(ctx workflow.Context, name string) (Data, error) {
 		return Data{}, fmt.Errorf("failed to get ip: %s", err)
 	}
 	workflow.GetLogger(ctx).Info("IP fetched", "ip", ip)
+
+	var recordedIp string
+	err = workflow.ExecuteActivity(ctx, ipActivities.RecordLookup, ip).Get(ctx, &recordedIp)
+	if err != nil {
+		return Data{}, fmt.Errorf("failed to record lookup: %s", err)
+	}
+
 	// Sleep for 45 seconds to give us time to modify code while workflow is running
-	workflow.GetLogger(ctx).Info("Sleeping for 45 seconds... (this is when you'll modify the code)")
-	workflow.Sleep(ctx, 45*time.Second)
+	workflow.GetLogger(ctx).Info("Sleeping for 5 seconds... (this is when you'll modify the code)")
+	workflow.Sleep(ctx, 30*time.Second)
 	workflow.GetLogger(ctx).Info("Awake! Now fetching location...")
 
 	var location string
