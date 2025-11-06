@@ -35,6 +35,8 @@ func main() {
 	w.RegisterWorkflow(iplocate.GetAddressFromIP)
 	w.RegisterWorkflow(iplocate.GetAddressFromIPV2)
 	w.RegisterWorkflow(iplocate.IPMonitorWorkflow)
+	w.RegisterWorkflow(iplocate.IPLookupWorkflow)
+	w.RegisterWorkflow(iplocate.StatusCheckerWorkflow)
 	w.RegisterActivity(activities)
 
 	err = w.Run(worker.InterruptCh())
