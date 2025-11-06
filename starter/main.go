@@ -37,9 +37,8 @@ func main() {
 	// For this example, we use timestamp for unique executions.
 	// In production, consider: "ip-lookup-" + requestID for idempotency
 	workflowOptions := client.StartWorkflowOptions{
-		ID:         "ip-geolocation-workflow-" + fmt.Sprint(time.Now().Unix()),
-		TaskQueue:  iplocate.TaskQueueName,
-		StartDelay: 10 * time.Second,
+		ID:        "ip-geolocation-workflow-" + fmt.Sprint(time.Now().Unix()),
+		TaskQueue: iplocate.TaskQueueName,
 	}
 
 	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, iplocate.GetAddressFromIP, "")

@@ -69,3 +69,29 @@ func (i *IPActivities) GetLocationInfo(ctx context.Context, ip string) (string, 
 
 	return fmt.Sprintf("City: %s, Region: %s, Country: %s", data.City, data.Region, data.Country), nil
 }
+
+func (i *IPActivities) GetTimezone(ctx context.Context, ip string) (string, error) {
+	url := "http://ip-api.com/json/" + ip + "?fields=timezone"
+	fmt.Printf("DEBUG: Fetching timezone for IP [%s] from URL: %s\n", ip, url)
+
+	resp, err := i.HTTPClient.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("HTTP GET error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read body error: %w", err)
+	}
+
+	var data struct {
+		Timezone string `json:"timezone"`
+	}
+
+	if err := json.Unmarshal(body, &data); err != nil {
+		return "", fmt.Errorf("JSON unmarshal error: %w", err)
+	}
+
+	return data.Timezone, nil
+}
